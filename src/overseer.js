@@ -50,7 +50,7 @@ export default function(method) {
 			},
 			err => {
 				state = 'error';
-				message = defaultErrorParser(err);
+				message = errorParser(err);
 				throw err;
 			}
 		);
