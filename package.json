@@ -20,7 +20,8 @@
   "files": [
     "LICENSE",
     "README.md",
-    "dist"
+    "dist",
+    "src"
   ],
   "homepage": "https://github.com/brycehanscomb/oversee-promise#readme",
   "dependencies": {},
