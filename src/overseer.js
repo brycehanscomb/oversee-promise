@@ -93,19 +93,19 @@ export default function(method) {
 		 */
 		message: {
 			get: () => message,
-			set: newVal => message = newVal
+			set: newVal => (message = newVal), overseer
 		},
 		state: {
 			get: () => state,
-			set: newVal => state = newVal
+			set: newVal => (state = newVal), overseer
 		},
 		result: {
 			get: () => result,
-			set: newVal => result = newVal
+			set: newVal => (result = newVal), overseer
 		},
 		errorParser: {
 			get: () => errorParser,
-			set: newVal => errorParser = newVal
+			set: newVal => (errorParser = newVal), overseer
 		}
 	});
 
