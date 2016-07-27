@@ -2,6 +2,28 @@ import * as STATES from './states.js';
 import { defaultErrorParser } from './utils.js';
 
 /**
+ * @typedef overseer
+ * @type {function}
+ * @property {!string} message
+ * @property {!string} state
+ * @property {?*} result
+ * @property {!function} errorParser
+ * @property {!boolean} isExecuting
+ * @property {!boolean} isNotExecuting
+ * @property {!boolean} isReady
+ * @property {!boolean} isNotReady
+ * @property {!boolean} isSuccessful
+ * @property {!boolean} isNotSuccessful
+ * @property {!boolean} hasError
+ * @property {!boolean} hasMessage
+ * @property {!boolean} hasResult
+ * @property {!function} resetToReady
+ * @property {!function} resetToExecuting
+ * @property {!function} setErrorParser
+ * @property {!function} method
+ */
+
+/**
  * @param {function} method
  * @returns {overseer}
  */
