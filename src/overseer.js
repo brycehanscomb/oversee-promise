@@ -46,6 +46,7 @@ export default function(method) {
 		return method(...args).then(
 			response => {
 				state = 'success';
+				result = response;
 				return response;
 			},
 			err => {
