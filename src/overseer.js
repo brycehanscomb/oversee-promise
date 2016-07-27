@@ -121,6 +121,11 @@ export default function(method) {
 		state = STATES.EXECUTING
 	};
 
+	overseer.setErrorParser = newVal => {
+		errorParser = newVal;
+		return overseer;
+	};
+
 	/**
 	 * A reference to original method being overseen
 	 * @type {Function}
