@@ -1,3 +1,4 @@
+import * as STATES from './states';
 /**
  * @param {!function} method - The method that should be overseen (it must return a `Promise` when invoked)
  */
@@ -25,9 +26,8 @@ export default function(method) {
 			return err.toString();
 		}
 	}
-
 	let message = '';
-	let state = 'ready';
+	let state = STATES.READY;
 	let result = undefined;
 	let subscriptionListener = noop;
 	let errorParser = defaultErrorParser;
@@ -42,7 +42,7 @@ export default function(method) {
 
 		return method(...args).then(
 			response => {
-				state = 'success';
+				state = STATES.SUCCESS;
 				message = 'Success';
 				result = response;
 
@@ -54,7 +54,7 @@ export default function(method) {
 				return response;
 			},
 			err => {
-				state = 'error';
+				state = STATES.ERROR;
 				message = errorParser(err);
 				result = err;
 
@@ -69,7 +69,7 @@ export default function(method) {
 	}
 
 	function resetToReady() {
-		state = 'ready';
+		state = STATES.READY;
 		message = '';
 		result = undefined;
 
@@ -77,7 +77,7 @@ export default function(method) {
 	}
 
 	function resetToExecuting() {
-		state = 'executing';
+		state = STATES.EXECUTING;
 		message = '';
 		result = undefined;
 
@@ -154,49 +154,49 @@ export default function(method) {
 		 * @type {boolean}
 		 */
 		get isSuccessful() {
-			return state === 'success';
+			return state === STATES.SUCCESS;
 		},
 		/**
 		 * @type {boolean}
 		 */
 		get isNotSuccessful() {
-			return state !== 'success';
+			return state !== STATES.SUCCESS;
 		},
 		/**
 		 * @type {boolean}
 		 */
 		get isReady() {
-			return state === 'ready';
+			return state === STATES.READY;
 		},
 		/**
 		 * @type {boolean}
 		 */
 		get isNotReady() {
-			return state !== 'ready';
+			return state !== STATES.READY;
 		},
 		/**
 		 * @type {boolean}
 		 */
 		get isExecuting() {
-			return state === 'executing';
+			return state === STATES.EXECUTING;
 		},
 		/**
 		 * @type {boolean}
 		 */
 		get isNotExecuting() {
-			return state !== 'executing';
+			return state !== STATES.EXECUTING;
 		},
 		/**
 		 * @type {boolean}
 		 */
 		get hasError() {
-			return state === 'error';
+			return state === STATES.ERROR;
 		},
 		/**
 		 * @type {boolean}
 		 */
 		get hasNoError() {
-			return state !== 'error';
+			return state !== STATES.ERROR;
 		},
 		/**
 		 * @type {boolean}
