@@ -4,7 +4,7 @@
   "description": "Utility for working with JS promises throughout their lifecycle",
   "main": "dist/overseer.js",
   "scripts": {
-    "test": "mocha test/",
+    "test": "npm run build && mocha test/",
     "build": "babel src -d dist",
     "prepublish": "npm run build && npm run test"
   },
