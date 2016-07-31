@@ -1,4 +1,7 @@
 import * as STATES from './states';
+const noop = function() {};
+import defaultErrorParser from './utils';
+
 /**
  * @param {!function} method - The method that should be overseen (it must return a `Promise` when invoked)
  */
@@ -13,19 +16,6 @@ export default function(method) {
 		STATE_CHANGED: 'STATE_CHANGED',
 		RESULT_CHANGED: 'RESULT_CHANGED'
 	};
-
-	const noop = function() {};
-
-	/**
-	 * @param {(Error|{message: string}|*)} err - A throwable value, hopefully with a `message` property
-	 */
-	const defaultErrorParser = function(err) {
-		if (err.message) {
-			return err.message;
-		} else {
-			return err.toString();
-		}
-	}
 	let message = '';
 	let state = STATES.READY;
 	let result = undefined;
