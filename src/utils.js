@@ -15,7 +15,7 @@ export function defaultErrorParser(err) {
 	}
 
 	/**
-	 * If the `err` is already a friendly string (or at least just parsable as
+	 * If the `err` is already a friendly string (or at least just parse-able as
 	 * one), then we'll just use that.
 	 */
 	if (typeof err === 'string') {
