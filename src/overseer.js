@@ -1,159 +1,216 @@
-import * as STATES from './states.js';
-import { defaultErrorParser } from './utils.js';
-
 /**
- * @typedef overseer
- * @type {function}
- * @property {!string} message
- * @property {!string} state
- * @property {?*} result
- * @property {!function} errorParser
- * @property {!boolean} isExecuting
- * @property {!boolean} isNotExecuting
- * @property {!boolean} isReady
- * @property {!boolean} isNotReady
- * @property {!boolean} isSuccessful
- * @property {!boolean} isNotSuccessful
- * @property {!boolean} hasError
- * @property {!boolean} hasMessage
- * @property {!boolean} hasResult
- * @property {!function} resetToReady
- * @property {!function} resetToExecuting
- * @property {!function} setErrorParser
- * @property {!function} method
- */
-
-/**
- * @param {function} method
- * @returns {overseer}
+ * @param {!function} method - The method that should be overseen (it must return a `Promise` when invoked)
  */
 export default function(method) {
+	'use strict';
+
+	const EVENTS = {
+		BEGIN_EXECUTING: 'BEGIN_EXECUTING',
+		COMPLETED_SUCCESSFULLY: 'COMPLETED_SUCCESSFULLY',
+		COMPLETED_UNSUCCESSFULLY: 'COMPLETED_UNSUCCESSFULLY',
+		MESSAGE_CHANGED: 'MESSAGE_CHANGED',
+		STATE_CHANGED: 'STATE_CHANGED',
+		RESULT_CHANGED: 'RESULT_CHANGED'
+	};
+
+	const noop = function() {};
 
 	/**
-	 * The user-friendly message to show when necessary
-	 * @type {string}
+	 * @param {(Error|{message: string}|*)} err - A throwable value, hopefully with a `message` property
 	 */
+	const defaultErrorParser = function(err) {
+		if (err.message) {
+			return err.message;
+		} else {
+			return err.toString();
+		}
+	}
+
 	let message = '';
-
-	/**
-	 * The current state of the overseen method
-	 * @type {string}
-	 */
-	let state = STATES.READY;
-
-	/**
-	 * Where the data gets stored if the method resolves successfully
-	 * @type {*}
-	 */
+	let state = 'ready';
 	let result = undefined;
-
-	/**
-	 * The method to run to extract an error message from `method` if it rejects
-	 * @type {function}
-	 */
+	let subscriptionListener = noop;
 	let errorParser = defaultErrorParser;
 
 	/**
-	 * The main interface for the module. Since JS functions are secretly
-	 * objects, there are some properties added to this method below. The args
-	 * passed here are what `method` will be invoked with to run.
-	 *
-	 * @param {...*} args
-	 * @returns {Promise}
+	 * @param {...*} args - The arguments with which to invoke `method` and kick off the executing
 	 */
-	function overseer(...args) {
-		/**
-		 *
-		 */
+	function run(...args) {
+		resetToExecuting();
+
+		publishToSubscriber(EVENTS.BEGIN_EXECUTING, [...args]);
+
 		return method(...args).then(
 			response => {
 				state = 'success';
+				message = 'Success';
 				result = response;
+
+				publishToSubscriber(EVENTS.COMPLETED_SUCCESSFULLY, response);
+
+				/**
+				 * Continue the chainable `then` of the raw `method`'s promise.
+				 */
 				return response;
 			},
 			err => {
 				state = 'error';
 				message = errorParser(err);
+				result = err;
+
+				publishToSubscriber(EVENTS.COMPLETED_UNSUCCESSFULLY, err);
+
+				/**
+				 * Continue the chainable `then`/`catch` of the raw `method`'s promise.
+				 */
 				throw err;
 			}
 		);
 	}
 
-	Object.defineProperties(overseer, {
-		/**
-		 * Status utility props
-		 */
-		isExecuting: {
-			get: () => state === 'executing'
-		},
-		isNotExecuting: {
-			get: () => state !== 'executing'
-		},
-		isReady: {
-			get: () => state === 'ready'
-		},
-		isNotReady: {
-			get: () => state !== 'ready'
-		},
-		isSuccessful: {
-			get: () => state === 'success'
-		},
-		isNotSuccessful: {
-			get: () => state !== 'success'
-		},
-		hasError: {
-			get: () => state === 'error'
-		},
-		hasMessage: {
-			get: () => !!message
-		},
-		hasResult: {
-			get: () => result !== undefined
-		},
-
-		/**
-		 * Proxies for internal props
-		 */
-		message: {
-			get: () => message,
-			set: newVal => (message = newVal), overseer
-		},
-		state: {
-			get: () => state,
-			set: newVal => (state = newVal), overseer
-		},
-		result: {
-			get: () => result,
-			set: newVal => (result = newVal), overseer
-		},
-		errorParser: {
-			get: () => errorParser,
-			set: newVal => (errorParser = newVal), overseer
-		}
-	});
-
-	overseer.resetToReady = () => {
-		result = undefined;
+	function resetToReady() {
+		state = 'ready';
 		message = '';
-		state = STATES.READY
-	};
-
-	overseer.resetToExecuting = () => {
 		result = undefined;
-		message = '';
-		state = STATES.EXECUTING
-	};
 
-	overseer.setErrorParser = newVal => {
-		errorParser = newVal;
 		return overseer;
-	};
+	}
+
+	function resetToExecuting() {
+		state = 'executing';
+		message = '';
+		result = undefined;
+
+		return overseer;
+	}
 
 	/**
-	 * A reference to original method being overseen
-	 * @type {Function}
+	 * @param {function} subscriber - The method to invoke as a callback when one of the `EVENTS` occurs.
 	 */
-	overseer.method = method;
+	function subscribe(subscriber) {
+		subscriptionListener = subscriber;
+
+		return overseer;
+	}
+
+	function unsubscribe() {
+		subscriptionListener = noop;
+
+		return overseer;
+	}
+
+	/**
+	 * @param {!string} event - Which event just occured.
+	 * @param {?*} meta - any extra info about `event`
+	 */
+	function publishToSubscriber(event, meta) {
+		subscriptionListener(event, meta);
+	}
+
+	/**
+	 * @param {!function} newErrorParser - The method which to calculate the `message` based on a given `err`. Must return a `string` for `message`.
+	 */
+	function setErrorParser(newErrorParser) {
+		errorParser = newErrorParser;
+		return overseer;
+	}
+
+	const overseer = {
+		run,
+		subscribe,
+		unsubscribe,
+		resetToReady,
+		resetToExecuting,
+		setErrorParser,
+
+		get state() {
+			return state;
+		},
+		set state(newVal) {
+			state = newVal;
+			publishToSubscriber(EVENTS.STATE_CHANGED, newVal);
+		},
+		
+		get message() {
+			return message;
+		},
+		set message(newVal) {
+			message = newVal;
+			publishToSubscriber(EVENTS.MESSAGE_CHANGED, newVal);
+		},
+		
+		get result() {
+			return result;
+		},
+		set result(newVal) {
+			result = newVal;
+			publishToSubscriber(EVENTS.RESULT_CHANGED, newVal);
+		},
+		
+
+		events: EVENTS,
+
+		/**
+		 * @type {boolean}
+		 */
+		get isSuccessful() {
+			return state === 'success';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get isNotSuccessful() {
+			return state !== 'success';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get isReady() {
+			return state === 'ready';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get isNotReady() {
+			return state !== 'ready';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get isExecuting() {
+			return state === 'executing';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get isNotExecuting() {
+			return state !== 'executing';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get hasError() {
+			return state === 'error';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get hasNoError() {
+			return state !== 'error';
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get hasMessage() {
+			return !!message;
+		},
+		/**
+		 * @type {boolean}
+		 */
+		get hasNoMessage() {
+			return !message;
+		}
+	};
 
 	return overseer;
 }
