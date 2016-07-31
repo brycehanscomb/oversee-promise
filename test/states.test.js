@@ -24,8 +24,8 @@ describe('The states', function() {
 
 	describe('The nitty-gritty', function() {
 
-		it('should have 3 key/value pairs', function() {
-			expect(Object.keys(STATES).length).to.equal(3);
+		it('should have 4 key/value pairs', function() {
+			expect(Object.keys(STATES).length).to.equal(4);
 		});
 
 		it('keys should be uppercase', function() {
@@ -59,7 +59,8 @@ describe('The states', function() {
 		const expectedKeysAndValues = [
 			['ERROR', 'error'],
 			['READY', 'ready'],
-			['EXECUTING', 'executing']
+			['EXECUTING', 'executing'],
+			['SUCCESS', 'success']
 		];
 
 		expectedKeysAndValues.forEach(keyValPair => {

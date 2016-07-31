@@ -14,3 +14,7 @@ export const EXECUTING = 'executing';
  * When the method has not been run yet (or has been reset)
  */
 export const READY = 'ready';
+/**
+ * When the method has been run without errors.
+ */
+export const SUCCESS = 'success';
