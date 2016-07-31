@@ -1,3 +1,4 @@
+import * as EVENTS from './events';
 import * as STATES from './states';
 const noop = function() {};
 import defaultErrorParser from './utils';
@@ -8,14 +9,6 @@ import defaultErrorParser from './utils';
 export default function(method) {
 	'use strict';
 
-	const EVENTS = {
-		BEGIN_EXECUTING: 'BEGIN_EXECUTING',
-		COMPLETED_SUCCESSFULLY: 'COMPLETED_SUCCESSFULLY',
-		COMPLETED_UNSUCCESSFULLY: 'COMPLETED_UNSUCCESSFULLY',
-		MESSAGE_CHANGED: 'MESSAGE_CHANGED',
-		STATE_CHANGED: 'STATE_CHANGED',
-		RESULT_CHANGED: 'RESULT_CHANGED'
-	};
 	let message = '';
 	let state = STATES.READY;
 	let result = undefined;
