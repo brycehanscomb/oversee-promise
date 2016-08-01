@@ -1,6 +1,6 @@
 {
   "name": "@brycehanscomb/oversee-promise",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Utility for working with JS promises throughout their lifecycle",
   "main": "dist/overseer.js",
   "scripts": {
