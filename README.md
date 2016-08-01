@@ -72,69 +72,9 @@ Aurelia, etc. Just keep in mind that some work might need to be done to hook up
 into your library of choice. See the [Usage In Popular Frameworks](#usage-in-popular-frameworks)
 for how to do this.
 
-## <a name="usage-in-popular-frameworks"></a>Usage In Popular Frameworks
-
-Since `oversee-promise` maintains its own internal state, you need to tell your
-library/framework when it should ingest the new state and (potentially)
-re-render your view.
-
-To do this, pass a callback function into the `subscribe` method of your wrapped
-promise. See below for common examples:
-
-### AngularJS (v1.x)
-
-In your controller:
-
-```js
-/**
-* Wrap the promise as usual.
-*/
-const newsItemsQuery = oversee( yourApi.getNewsItems );
-
-/**
-* Call `$scope.$apply()` when the internal state has updated.
-*/
-newsItemsQuery.subscribe($scope.$apply);
-```
-
-### React
-
-```jsx
-/**
- * A method that calls React's `render`
- */
-function onRequestChanged() {
-    ReactDOM.render(<MyApp />, targetNode);
-}
-
-/**
- * Wrap the promise as usual.
- */
-const newsItemsQuery = oversee( yourApi.getNewsItems );
-
-/**
- * Call your re-render method when the internal state has updated.
- */
-newsItemsQuery.subscribe(onRequestChanged);
-```
-
-### Vue
-
-No work should be necessary for Vue since it reacts to all watched property
-changes. If you find a case where Vue isn't aware of a state change, please file
-an issue so we can get it working!
-
-### Other Frameworks
-
-The steps required to alert your framework of choice that it needs to re-render
-are probably similar to one of the examples above.
-
-Whatever method you use to inform your framework that it's time to re-render,
-you should pass that method into `subscribe` so it gets notified.
-
 ## API Reference
 
-### Constructor Factory: `oversee`
+### Constructor Factory: `oversee(method)`
 
 * Parameters:
   * `[function]` **`method`** (required)
@@ -197,9 +137,115 @@ will be `undfined`.
 If you manually mutate `instance.result`, this will trigger invocation of any
 callback passed to [`instance.subscribe`](#api-subscribe).
 
+#### isSuccessful
+
+* Type: `boolean`
+
+Whether the wrapped promise has resolved successfully.
+
+#### isNotSuccessful
+
+* Type: `boolean`
+
+Whether the wrapped promise has not resolved successfully. This could be for
+several reasons:
+
+* The request has not started yet (`instance.run()` has not been invoked).
+* The request is currently executing.
+* The request encountered an error.
+
+#### isReady
+
+* Type: `boolean`
+
+Whether the wrapped promise has not started yet (`instance.run()` has not been
+invoked).
+
+#### isNotReady
+
+* Type: `boolean`
+
+Whether the wrapped promise is in a state other than `ready`. This could be for
+several reasons:
+
+* The request is currently executing.
+* The request has resolved successfully.
+* The request encountered an error.
+
+#### isExecuting
+
+* Type: `boolean`
+
+Whether the wrapped promise is currently in the process of running.
+
+#### isNotExecuting
+
+* Type: `boolean`
+
+Whether the wrapped promise is not currently running. This could be for several
+reasons:
+
+* The request has not started yet (`instance.run()` has not been invoked).
+* The request has resolved successfully.
+* The request encountered an error.
+
+#### hasError
+
+* Type: `boolean`
+
+Whether the wrapped promise has completed but has been rejected with an error.
+
+#### hasNoError
+
+* Type: `boolean`
+
+Whether the wrapped promise is not currently completed with an error. This could
+be for several reasons:
+
+* The request has not started yet (`instance.run()` has not been invoked).
+* The request has resolved successfully.
+* The request is currently executing.
+
+#### hasMessage
+
+* Type: `boolean`
+
+Whether the wrapped promise has anything assigned to its `instance.message`
+property. This is usually the case if the request has encountered an error, but
+it can also be assigned at any time.
+
+#### hasNoMessage
+
+* Type: `boolean`
+
+Whether the wrapped promise does not have anything assigned to its
+`instance.message` property. This will usually be the case when the request has
+not encountered an error, ie: it is unstarted, currently executing or has been
+resolved successfully. Be aware that `instance.result` can also be manually
+assigned at any time.
+
+#### hasResult
+
+* Type: `boolean`
+
+Whether the wrapped promise has anything assigned to its `instance.result`
+property. This will usually be the case if the request has completed
+successfully (in which case, `instance.result` will be the response payload) or
+if the request was rejected with an error (in which case, `instance.result`)
+will be the error that the request was rejected with. Be aware that
+`instance.result` can also be manually assigned at any time.
+
+#### hasNoResult
+
+* Type: `boolean`
+
+Whether the wrapped promise does not have anything assigned to its
+`instance.result` property. This is usually the case if the request is unstarted
+or currently executing, but it can also be assigned at any time.
+
 ### Instance Methods
 
-#### `run`
+#### `run()`
 
 * Parameters:
   * `[any]` **`[arg1, [arg2, ...argN]]`** (optional)
@@ -211,7 +257,7 @@ callback passed to [`instance.subscribe`](#api-subscribe).
 If the original `method` would take any arguments when invoking it normally,
 pass them into `run`.
 
-#### <a name="api-subscribe"></a>`subscribe`
+#### <a name="api-subscribe"></a>`subscribe(callback)`
 
 * Parameters:
   * `[function]` **`[callback]`** (required)
@@ -252,7 +298,7 @@ have its callback registered -- other previous calls will be overwritten.
 
 To stop listening to events / state changes, call [`instance.unsubscribe`](#api-unsubscribe).
 
-#### <a name="api-unsubscribe"></a>`unsubscribe`
+#### <a name="api-unsubscribe"></a>`unsubscribe()`
 
 * Parameters: none
 * Returns:
@@ -262,7 +308,7 @@ To stop listening to events / state changes, call [`instance.unsubscribe`](#api-
 Removes the subscription to `callback` passed to [`instance.subscribe`](#api-subscribe).
 The `callback` will no longer be invoked for any internal state change.
 
-#### <a name="api-resettoready"></a>`resetToReady`
+#### <a name="api-resettoready"></a>`resetToReady()`
 
 * Parameters: none
 * Returns:
@@ -280,7 +326,7 @@ property values:
 This method does not affect any functions passed to [`subscribe`](#api-subscribe)
 or [`setErrorHandler`](#api-seterrorhander).
 
-#### <a name="api-resettoexecuting"></a>`resetToExecuting`
+#### <a name="api-resettoexecuting"></a>`resetToExecuting()`
 
 * Parameters: none
 * Returns:
@@ -298,10 +344,10 @@ property values:
 This method does not affect any functions passed to [`subscribe`](#api-subscribe)
 or [`setErrorHandler`](#api-seterrorhander).
 
-#### <a name="api-seterrorparser"></a>`setErrorParser`
+#### <a name="api-seterrorparser"></a>`setErrorParser(parserFunction)`
 
 * Parameters:
-  * `[function]` **`[errorHandler]`** (required)
+  * `[function]` **`[parserFunction]`** (required)
   A method to invoke when an error has occurred to get an error message.
 * Returns:
   * `[overseenPromise]` **`this`**
@@ -348,3 +394,63 @@ const myInstance = oversee( api.getSomeInfo );
  */
 myInstance.setErrorParser(myErrorParser);
 ```
+
+## <a name="usage-in-popular-frameworks"></a>Usage In Popular Frameworks
+
+Since `oversee-promise` maintains its own internal state, you need to tell your
+library/framework when it should ingest the new state and (potentially)
+re-render your view.
+
+To do this, pass a callback function into the `subscribe` method of your wrapped
+promise. See below for common examples:
+
+### AngularJS (v1.x)
+
+In your controller:
+
+```js
+/**
+* Wrap the promise as usual.
+*/
+const newsItemsQuery = oversee( yourApi.getNewsItems );
+
+/**
+* Call `$scope.$apply()` when the internal state has updated.
+*/
+newsItemsQuery.subscribe($scope.$apply);
+```
+
+### React
+
+```jsx
+/**
+ * A method that calls React's `render`
+ */
+function onRequestChanged() {
+    ReactDOM.render(<MyApp />, targetNode);
+}
+
+/**
+ * Wrap the promise as usual.
+ */
+const newsItemsQuery = oversee( yourApi.getNewsItems );
+
+/**
+ * Call your re-render method when the internal state has updated.
+ */
+newsItemsQuery.subscribe(onRequestChanged);
+```
+
+### Vue
+
+No work should be necessary for Vue since it reacts to all watched property
+changes. If you find a case where Vue isn't aware of a state change, please file
+an issue so we can get it working!
+
+### Other Frameworks
+
+The steps required to alert your framework of choice that it needs to re-render
+are probably similar to one of the examples above.
+
+Whatever method you use to inform your framework that it's time to re-render,
+you should pass that method into `subscribe` so it gets notified.
