@@ -192,7 +192,13 @@ export default function(method) {
 		 */
 		get hasNoMessage() {
 			return !message;
-		}
+		},
+        get hasResult() {
+            return !!result;
+        },
+        get hasNoResult() {
+            return !result;
+        }
 	};
 
 	return overseer;
