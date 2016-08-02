@@ -272,22 +272,22 @@ arguments:
 
 1. `[string]` **`event`**
   The type of internal happening that just occurred. Will be one of:
-  * `BEGIN_EXECUTING` - The wrapped promise begins executing (usually in
+  * `'begin_executing'` - The wrapped promise begins executing (usually in
   reaction to `.run()` being invoked)
-  * `COMPLETED_SUCCESSFULLY` - The wrapped promise has finished executing and
+  * `'completed_successfully'` - The wrapped promise has finished executing and
   there was no error. Any data that the promise was resolved with is now
   available to be accessed at `instance.result`.
-  * `COMPLETED_UNSUCCESSFULLY` - The wrapped promise has finished executing but
+  * `'completed_unsuccessfully'` - The wrapped promise has finished executing but
   there was an error. More information about the error is now available to be
   accessed at `instance.result`, and human-readable error message is available
   to be accessed at `instance.message`.
-  * `MESSAGE_CHANGED` - The user has manually set a new value of
+  * `'message_changed'` - The user has manually set a new value of
   `instance.message`. This event will not be fired any other time (even if some
   other event causes the `message` property to be changed).
-  * `STATE_CHANGED` - The user has manually set a new value of
+  * `'state_changed'` - The user has manually set a new value of
   `instance.state`. This event will not be fired any other time (even if some
   other event causes the `state` property to be changed).
-  * `RESULT_CHANGED` - The user has manually set a new value of
+  * `'result_changed'` - The user has manually set a new value of
   `instance.result`. This event will not be fired any other time (even if some
   other event causes the `result` property to be changed).
 2. `[any]` **`meta`** (optional)
